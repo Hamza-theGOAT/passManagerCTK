@@ -2,4 +2,4 @@ encrypted_passwords.dat
 salt.dat
 test.py
 testRuns
-/passwords.json
+/files/passwords.json
