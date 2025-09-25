@@ -188,7 +188,24 @@ class BasicPasswordManager:
         pass
 
     def showLoginPage(self):
-        pass
+        """Display the login page"""
+        # Hide main page
+        if hasattr(self, 'mainFrame'):
+            self.mainFrame.grid_remove()
+
+        # Show login page
+        self.loginFrame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
+
+        # Focus on password entry
+        self.passEntry.focus()
+
+    def showMainPage(self):
+        """Display the main page"""
+        # Hide login page
+        self.loginFrame.grid_remove()
+
+        # Show main page
+        self.mainFrame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
 
     def run(self):
         """Start the application"""
