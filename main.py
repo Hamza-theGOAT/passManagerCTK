@@ -101,6 +101,90 @@ class BasicPasswordManager:
         pass
 
     def setupMainPage(self):
+        """Create the main page"""
+        self.mainFrame = ctk.CTkFrame(self.mainContainer)
+        self.mainFrame.grid_columnconfigure(1, weight=1)
+        self.mainFrame.grid_rowconfigure(0, weight=1)
+
+        # Left Sidebar
+        sidebar = ctk.CTkFrame(self.mainFrame, width=250)
+        sidebar.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
+        sidebar.grid_propagate(False)
+        sidebar.grid_columnconfigure(0, weight=1)
+
+        # Sidebar Label
+        sidebarLabel = ctk.CTkLabel(
+            sidebar,
+            text="🔐 SecureVault",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
+        sidebarLabel.grid(row=0, column=0, padx=20, pady=(20, 20))
+
+        # Welcome message
+        welcomeLabel = ctk.CTkLabel(
+            sidebar,
+            text="Welcome! Vault is unlocked, MiLord!",
+            font=ctk.CTkFont(size=14),
+            text_color=("green", "lightgreen")
+        )
+        welcomeLabel.grid(row=1, column=0, padx=20, pady=(0, 30))
+
+        # Menu buttons
+        menuButtons = [
+            "📝 Add Password",
+            "🔍 Search Passwords",
+            "🎲 Generate Password",
+            "📊 Password Health",
+            "📤 Export Data",
+            "⚙️ Settings"
+        ]
+
+        for i, buttonText in enumerate(menuButtons):
+            button = ctk.CTkButton(
+                sidebar,
+                text=buttonText,
+                height=40,
+                font=ctk.CTkFont(size=14),
+                command=lambda text=buttonText: self.sideBarBtns(text)
+            )
+            button.grid(row=2+i, column=0, padx=20, pady=5, sticky="ew")
+
+        # Lock button at bottom
+        lockButton = ctk.CTkButton(
+            sidebar,
+            text="🔒 Lock Vault",
+            command=self.logout,
+            height=45,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color="red",
+            hover_color="darkred"
+        )
+        lockButton.grid(row=10, column=0, padx=20, pady=(30, 20), sticky="ew")
+
+        # Main content area
+        contentArea = ctk.CTkFrame(self.mainFrame)
+        contentArea.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
+        contentArea.grid_columnconfigure(0, weight=1)
+        contentArea.grid_rowconfigure(1, weight=1)
+
+        # Content header
+        contentHeader = ctk.CTkLabel(
+            contentArea,
+            text="🎉 Welcome to SecureVault!",
+            font=ctk.CTkFont(size=24, weight="bold")
+        )
+        contentHeader.grid(row=0, column=0, padx=30, pady=(30, 20))
+
+        # Content body
+        self.contentBody = ctk.CTkFrame(contentArea)
+        self.contentBody.grid(
+            row=1, column=0, sticky="nsew", padx=30, pady=(0, 30))
+        self.contentBody.grid_columnconfigure(0, weight=1)
+        self.contentBody.grid_rowconfigure(0, weight=1)
+
+        # Initial welcome (If need be)
+
+    def logout(self):
         pass
 
     def showLoginPage(self):
