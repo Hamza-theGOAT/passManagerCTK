@@ -11,7 +11,7 @@ class BasicPasswordManager:
         # Create main window
         self.root = ctk.CTk()
         self.root.title("🔐 SecureVault - Password Manager")
-        self.root.geometry("800x600")
+        self.root.geometry("800x700")
 
         # Using hardcoded pass initially
         self.correctPass = "password123"
@@ -98,7 +98,22 @@ class BasicPasswordManager:
         self.passEntry.bind('<Return>', lambda event: self.login())
 
     def login(self):
-        pass
+        """Handle login attempt"""
+        enteredPass = self.passEntry.get()
+
+        if not enteredPass:
+            messagebox.showwarning("Warning", "Please enter a password!")
+            return
+
+        if enteredPass == self.correctPass:
+            self.is_authenticated = True
+            self.passEntry.delete(0, 'end')
+            self.showMainPage()
+            messagebox.showinfo("Success", "Welcome! Vault unlocked, Milord")
+        else:
+            messagebox.showerror("Error", "Incorrect password! Try again.")
+            self.passEntry.delete(0, 'end')
+            self.passEntry.focus()
 
     def setupMainPage(self):
         """Create the main page"""
@@ -185,7 +200,13 @@ class BasicPasswordManager:
         # Initial welcome (If need be)
 
     def logout(self):
-        pass
+        """Handle logout"""
+        result = messagebox.askyesno(
+            "Confirm", "Are you sure you want to lock the Vault, Milord?")
+        if result:
+            self.is_authenticated = False
+            self.showLoginPage()
+            messagebox.showinfo("Locked", "Vault has been locked, Milord!")
 
     def showLoginPage(self):
         """Display the login page"""
