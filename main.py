@@ -1,5 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
+import os
+import json
 
 # Set appearance mode and color theme
 ctk.set_appearance_mode("dark")
@@ -34,6 +36,11 @@ class BasicPasswordManager:
 
         # Show login page initially
         self.showLoginPage()
+
+        # Password entries and data file
+        self.passData = {}
+        self.dataFile = 'files//passwords.json'
+        self.loadPass()
 
     def setupLoginPage(self):
         """Create the login page"""
@@ -227,6 +234,40 @@ class BasicPasswordManager:
 
         # Show main page
         self.mainFrame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
+
+    def sideBarBtns(self, buttonText):
+        """Handle sidebar button clicks"""
+        if buttonText == "📝 Add Password":
+            self.showAddPassDialog()
+        else:
+            # Clear current content
+            for widget in self.contentBody.winfo_children():
+                widget.destroy()
+
+            # Show placeholder for other features
+            placeholderLabel = ctk.CTkLabel(
+                self.contentBody,
+                text=f"🚧 {buttonText}\n\nThis feature will be implemented soon!",
+                font=ctk.CTkFont(size=16),
+                justify="center"
+            )
+            placeholderLabel.grid(row=0, column=0, padx=40, pady=40)
+
+    def showAddPassDialog(self):
+        pass
+
+    def loadPass(self):
+        """Load passwords from JSON file"""
+        if os.path.exists(self.dataFile):
+            with open(self.dataFile, 'r') as j:
+                self.passData = json.load(j)
+        else:
+            self.passData = {}
+
+    def savePass(self):
+        """Save passwords to JSON file"""
+        with open(self.dataFile, 'w') as f:
+            json.dump(self.passData, f, indent=2)
 
     def run(self):
         """Start the application"""
