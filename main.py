@@ -2,6 +2,7 @@ import customtkinter as ctk
 from tkinter import messagebox
 import os
 import json
+from datetime import datetime as dt
 
 # Set appearance mode and color theme
 ctk.set_appearance_mode("dark")
@@ -204,7 +205,8 @@ class BasicPasswordManager:
         self.contentBody.grid_columnconfigure(0, weight=1)
         self.contentBody.grid_rowconfigure(0, weight=1)
 
-        # Initial welcome (If need be)
+        # Show existing pass
+        self.displayPass()
 
     def logout(self):
         """Handle logout"""
@@ -254,7 +256,35 @@ class BasicPasswordManager:
             placeholderLabel.grid(row=0, column=0, padx=40, pady=40)
 
     def showAddPassDialog(self):
-        pass
+        """Show add password dialog"""
+        dialog = AddPasswordDialog(self.root, self.addPassEntry)
+
+    def addPassEntry(self, site, username, password, notes=""):
+        """Add a new password entry"""
+        entryID = f"pwd_{len(self.passData)+1}"
+
+        # Create password entry
+        passEntry = {
+            'site': site,
+            'username': username,
+            'password': password,
+            'notes': notes,
+            'created': dt.now().isoformat(),
+            'modified': dt.now().isoformat()
+        }
+
+        # Add to data
+        self.passData[entryID] = passEntry
+
+        # Save to file
+        self.savePass()
+
+        # Show success message
+        messagebox.showinfo(
+            "Success", f"Password for {site} added successfully!")
+
+        # Update the main display
+        self.displayPass()
 
     def loadPass(self):
         """Load passwords from JSON file"""
@@ -269,9 +299,17 @@ class BasicPasswordManager:
         with open(self.dataFile, 'w') as f:
             json.dump(self.passData, f, indent=2)
 
+    def displayPass(self):
+        pass
+
     def run(self):
         """Start the application"""
         self.root.mainloop()
+
+
+class AddPasswordDialog:
+    def __init__(self):
+        pass
 
 
 def main():
