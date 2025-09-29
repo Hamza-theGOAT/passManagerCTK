@@ -333,7 +333,63 @@ class BasicPasswordManager:
             self.createPassItem(scrollableFrame, i+1, entryID, data)
 
     def createPassItem(self, parent, row, entryID, data):
-        pass
+        """Create a password item display"""
+        # Main item frame
+        itemFrame = ctk.CTkFrame(parent)
+        itemFrame.grid(row=row, column=0, sticky="ew", padx=20, pady=5)
+        itemFrame.grid_columnconfigure(1, weight=1)
+
+        # Site icon
+        iconLabel = ctk.CTkLabel(
+            itemFrame, text="🌐", font=ctk.CTkFont(size=20))
+        iconLabel.grid(row=0, column=0, rowspan=2, padx=15, pady=10)
+
+        # Site name
+        siteLabel = ctk.CTkLabel(
+            itemFrame,
+            text=data['site'],
+            font=ctk.CTkFont(size=16, weight="bold"),
+            anchor="w"
+        )
+        siteLabel.grid(row=0, column=1, sticky="ew",
+                       padx=(0, 10), pady=(10, 0))
+
+        # Username
+        usernameLabel = ctk.CTkLabel(
+            itemFrame,
+            text=data['username'],
+            font=ctk.CTkFont(size=12),
+            text_color=("gray60", "gray40"),
+            anchor="w"
+        )
+        usernameLabel.grid(row=1, column=1, stick="ew",
+                           padx=(0, 10), pady=(10, 0))
+
+        # Action buttons
+        buttonFrame = ctk.CTkFrame(itemFrame, fg_color="transparent")
+        buttonFrame.grid(row=0, column=2, rowspan=2, padx=10, pady=10)
+
+        # View button (to show password)
+        viewBtn = ctk.CTkButton(
+            buttonFrame,
+            text="👁️ View",
+            width=80,
+            height=30,
+            command=lambda: self.viewPass(data),
+            font=ctk.CTkFont(size=12)
+        )
+        viewBtn.pack(side="left", padx=2)
+
+    def viewPass(self, data):
+        """Show password details"""
+        details = f"Site: {data['state']}\n"
+        details += f"Username: {data['username']}\n"
+        details += f"Password: {data['password']}\n"
+        if data.get('notes'):
+            details += f"Notes: {data['notes']}\n"
+        details += f"Created: {data['created'][:19]}"
+
+        messagebox.showinfo("Password Details", details)
 
     def run(self):
         """Start the application"""
