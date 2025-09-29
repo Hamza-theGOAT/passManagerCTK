@@ -300,6 +300,39 @@ class BasicPasswordManager:
             json.dump(self.passData, f, indent=2)
 
     def displayPass(self):
+        """Display stored passwords in the main content area"""
+        # Clear current content
+        for widget in self.contentBody.winfo_children():
+            widget.destroy()
+
+        if not self.passData:
+            # Show empty state
+            emptyLabel = ctk.CTkLabel(
+                self.contentBody,
+                text="No passwords stored yet.\n\nChlick 'Add Password' to get started!",
+                font=ctk.CTkFont(size=16),
+                text_color=("gray60", "gray40")
+            )
+            emptyLabel.grid(row=0, column=0, padx=40, pady=40)
+            return
+
+        # Create scrollable frame for password list
+        scrollableFrame = ctk.CTkScrollableFrame(self.contentBody)
+        scrollableFrame.grid(row=0, column=0, padx=40, pady=40)
+        scrollableFrame.grid_columnconfigure(0, weight=1)
+
+        # Add header
+        headerLabel = ctk.CTkLabel(
+            scrollableFrame,
+            text=f"Your Passwords ({len(self.passData)} entries)",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        headerLabel.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="w")
+
+        for i, (entryID, data) in enumerate(self.passData.items()):
+            self.createPassItem(scrollableFrame, i+1, entryID, data)
+
+    def createPassItem(self, parent, row, entryID, data):
         pass
 
     def run(self):
