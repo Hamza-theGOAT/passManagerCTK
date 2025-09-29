@@ -27,9 +27,14 @@ class BasicPasswordManager:
         # Create main container
         self.mainContainer = ctk.CTkFrame(self.root)
         self.mainContainer.grid(
-            row=0, column=0, sticky="nsew", padx=20, pady=20)
+            row=0, column=0, sticky="nsew", padx=5, pady=5)
         self.mainContainer.grid_columnconfigure(0, weight=1)
         self.mainContainer.grid_rowconfigure(0, weight=1)
+
+        # Password entries and data file
+        self.passData = {}
+        self.dataFile = 'files//passwords.json'
+        self.loadPass()
 
         # Create the two pages
         self.setupLoginPage()
@@ -37,11 +42,6 @@ class BasicPasswordManager:
 
         # Show login page initially
         self.showLoginPage()
-
-        # Password entries and data file
-        self.passData = {}
-        self.dataFile = 'files//passwords.json'
-        self.loadPass()
 
     def setupLoginPage(self):
         """Create the login page"""
@@ -126,55 +126,35 @@ class BasicPasswordManager:
     def setupMainPage(self):
         """Create the main page"""
         self.mainFrame = ctk.CTkFrame(self.mainContainer)
-        self.mainFrame.grid_columnconfigure(1, weight=1)
+        self.mainFrame.grid_columnconfigure(0, weight=1)
         self.mainFrame.grid_rowconfigure(0, weight=1)
 
         # Left Sidebar
-        sidebar = ctk.CTkFrame(self.mainFrame, width=250)
-        sidebar.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
-        sidebar.grid_propagate(False)
-        sidebar.grid_columnconfigure(0, weight=1)
-
-        # Sidebar Label
-        sidebarLabel = ctk.CTkLabel(
-            sidebar,
-            text="🔐 SecureVault",
-            font=ctk.CTkFont(size=20, weight="bold")
-        )
-        sidebarLabel.grid(row=0, column=0, padx=20, pady=(20, 20))
-
-        # Welcome message
-        welcomeLabel = ctk.CTkLabel(
-            sidebar,
-            text="Welcome! Vault is unlocked, MiLord!",
-            font=ctk.CTkFont(size=14),
-            text_color=("green", "lightgreen")
-        )
-        welcomeLabel.grid(row=1, column=0, padx=20, pady=(0, 30))
+        bottombar = ctk.CTkFrame(self.mainFrame, height=60)
+        bottombar.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
+        bottombar.grid_propagate(False)
+        bottombar.grid_columnconfigure(0, weight=1)
+        bottombar.grid_columnconfigure(3, weight=1)
 
         # Menu buttons
         menuButtons = [
             "📝 Add Password",
-            "🔍 Search Passwords",
-            "🎲 Generate Password",
-            "📊 Password Health",
-            "📤 Export Data",
-            "⚙️ Settings"
+            "📤 Export Data"
         ]
 
         for i, buttonText in enumerate(menuButtons):
             button = ctk.CTkButton(
-                sidebar,
+                bottombar,
                 text=buttonText,
                 height=40,
                 font=ctk.CTkFont(size=14),
                 command=lambda text=buttonText: self.sideBarBtns(text)
             )
-            button.grid(row=2+i, column=0, padx=20, pady=5, sticky="ew")
+            button.grid(row=0, column=i+1, padx=10, pady=10)
 
         # Lock button at bottom
         lockButton = ctk.CTkButton(
-            sidebar,
+            bottombar,
             text="🔒 Lock Vault",
             command=self.logout,
             height=45,
@@ -182,11 +162,11 @@ class BasicPasswordManager:
             fg_color="red",
             hover_color="darkred"
         )
-        lockButton.grid(row=10, column=0, padx=20, pady=(30, 20), sticky="ew")
+        lockButton.grid(row=0, column=3, padx=10, pady=10)
 
         # Main content area
         contentArea = ctk.CTkFrame(self.mainFrame)
-        contentArea.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
+        contentArea.grid(row=0, column=0, sticky="nsew", padx=10, pady=(10, 5))
         contentArea.grid_columnconfigure(0, weight=1)
         contentArea.grid_rowconfigure(1, weight=1)
 
@@ -201,7 +181,7 @@ class BasicPasswordManager:
         # Content body
         self.contentBody = ctk.CTkFrame(contentArea)
         self.contentBody.grid(
-            row=1, column=0, sticky="nsew", padx=30, pady=(0, 30))
+            row=1, column=0, sticky="nsew", padx=0, pady=0)
         self.contentBody.grid_columnconfigure(0, weight=1)
         self.contentBody.grid_rowconfigure(0, weight=1)
 
@@ -235,7 +215,7 @@ class BasicPasswordManager:
         self.loginFrame.grid_remove()
 
         # Show main page
-        self.mainFrame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
+        self.mainFrame.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
 
     def sideBarBtns(self, buttonText):
         """Handle sidebar button clicks"""
@@ -296,6 +276,10 @@ class BasicPasswordManager:
 
     def savePass(self):
         """Save passwords to JSON file"""
+        # Create JSON file if it isn't created
+        os.makedirs(os.path.dirname(self.dataFile), exist_ok=True)
+
+        # Overwrite JSON with current data
         with open(self.dataFile, 'w') as f:
             json.dump(self.passData, f, indent=2)
 
@@ -318,7 +302,7 @@ class BasicPasswordManager:
 
         # Create scrollable frame for password list
         scrollableFrame = ctk.CTkScrollableFrame(self.contentBody)
-        scrollableFrame.grid(row=0, column=0, padx=40, pady=40)
+        scrollableFrame.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
         scrollableFrame.grid_columnconfigure(0, weight=1)
 
         # Add header
@@ -336,7 +320,7 @@ class BasicPasswordManager:
         """Create a password item display"""
         # Main item frame
         itemFrame = ctk.CTkFrame(parent)
-        itemFrame.grid(row=row, column=0, sticky="ew", padx=20, pady=5)
+        itemFrame.grid(row=row, column=0, sticky="ew", padx=10, pady=3)
         itemFrame.grid_columnconfigure(1, weight=1)
 
         # Site icon
@@ -362,7 +346,7 @@ class BasicPasswordManager:
             text_color=("gray60", "gray40"),
             anchor="w"
         )
-        usernameLabel.grid(row=1, column=1, stick="ew",
+        usernameLabel.grid(row=1, column=1, sticky="ew",
                            padx=(0, 10), pady=(10, 0))
 
         # Action buttons
@@ -382,7 +366,7 @@ class BasicPasswordManager:
 
     def viewPass(self, data):
         """Show password details"""
-        details = f"Site: {data['state']}\n"
+        details = f"Site: {data['site']}\n"
         details += f"Username: {data['username']}\n"
         details += f"Password: {data['password']}\n"
         if data.get('notes'):
