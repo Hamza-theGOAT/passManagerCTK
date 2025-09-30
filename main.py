@@ -564,7 +564,23 @@ class AddPasswordDialog:
         self.siteEntry.focus()
 
     def savePass(self):
-        pass
+        """Save the password entry"""
+        site = self.siteEntry.get().strip()
+        username = self.usernameEntry.get().strip()
+        password = self.passwordEntry.get().strip()
+        notes = self.notesTextbox.get('1.0', 'end').strip()
+
+        # Validation
+        if not site or not username or not password:
+            messagebox.showwarning(
+                "Validation Error", "Please fill in the required fields!")
+            return
+
+        # Call the callback function
+        self.callBack(site, username, password, notes)
+
+        # Close dialog
+        self.dialog.destroy()
 
 
 def main():
