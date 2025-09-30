@@ -1,3 +1,4 @@
+# Search bar added to the main frame
 import customtkinter as ctk
 from tkinter import messagebox
 import os
@@ -189,7 +190,7 @@ class BasicPasswordManager:
 
         # Search frame
         searchFrame = ctk.CTkFrame(headerFrame, fg_color="transparent")
-        searchFrame.grid(row=0, column=0, sticky="e")
+        searchFrame.grid(row=0, column=2, sticky="e")
 
         # Search dropdown
         self.searchDropdown = ctk.CTkComboBox(
@@ -334,7 +335,10 @@ class BasicPasswordManager:
         for widget in self.contentBody.winfo_children():
             widget.destroy()
 
-        if not self.passData:
+        # Determine which data to display
+        self.dataToShow = self.filterData if self.isSearchActive else self.passData
+
+        if not self.dataToShow:
             # Show empty state
             emptyLabel = ctk.CTkLabel(
                 self.contentBody,
@@ -353,12 +357,12 @@ class BasicPasswordManager:
         # Add header
         headerLabel = ctk.CTkLabel(
             scrollableFrame,
-            text=f"Your Passwords ({len(self.passData)} entries)",
+            text=f"Your Passwords ({len(self.dataToShow)} entries)",
             font=ctk.CTkFont(size=18, weight="bold")
         )
         headerLabel.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="w")
 
-        for i, (entryID, data) in enumerate(self.passData.items()):
+        for i, (entryID, data) in enumerate(self.dataToShow.items()):
             self.createPassItem(scrollableFrame, i+1, entryID, data)
 
     def createPassItem(self, parent, row, entryID, data):
@@ -419,6 +423,29 @@ class BasicPasswordManager:
         details += f"Created: {data['created'][:19]}"
 
         messagebox.showinfo("Password Details", details)
+
+    def performSearch(self):
+        """Filter password data based on search criteria"""
+        searchTerm = self.searchEntry.get().strip().lower()
+        searchField = self.searchDropdown.get()
+
+        if not searchTerm:
+            # Empty search - show all data
+            self.filterData = {}
+            self.isSearchActive = False
+            self.displayPass()
+            return
+
+        # Filter the data
+        self.filterData = {}
+        for entryID, data in self.passData.items():
+            fieldValue = data.get(searchField, "").lower()
+            if searchTerm in fieldValue:
+                # print(f"Adding {entryID} to Filter Data")
+                self.filterData[entryID] = data
+
+        self.isSearchActive = True
+        self.displayPass()
 
     def run(self):
         """Start the application"""
