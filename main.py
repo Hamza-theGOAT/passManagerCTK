@@ -1,4 +1,3 @@
-# Search bar added to the main frame
 import customtkinter as ctk
 from tkinter import messagebox
 import os
@@ -453,7 +452,118 @@ class BasicPasswordManager:
 
 
 class AddPasswordDialog:
-    def __init__(self):
+    def __init__(self, parent, callBack):
+        self.callBack = callBack
+
+        # Create dialog window
+        self.dialog = ctk.CTkToplevel(parent)
+        self.dialog.title("Add New Password")
+        self.dialog.geometry("450x550")
+        self.dialog.grab_set()
+
+        # Center the dialog
+        self.dialog.geometry(
+            "+%d+%d" % (parent.winfo_rootx()+175, parent.winfo_rooty()+100))
+
+        # Main frame
+        mainFrame = ctk.CTkFrame(self.dialog)
+        mainFrame.pack(fill="both", expand=True, padx=5, pady=5)
+        mainFrame.grid_columnconfigure(0, weight=1)
+
+        # Title
+        titleLabel = ctk.CTkLabel(
+            mainFrame,
+            text="📝 Add New Password",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
+        titleLabel.grid(row=0, column=0, pady=(20, 30))
+
+        # Site/Service field
+        siteLabel = ctk.CTkLabel(
+            mainFrame, text="Site/Service:", font=ctk.CTkFont(size=14, weight="bold"))
+        siteLabel.grid(row=1, column=0, sticky="w", padx=20, pady=(0, 5))
+
+        self.siteEntry = ctk.CTkEntry(
+            mainFrame,
+            placeholder_text="e.g. Google, Facebook, GitHub",
+            height=35,
+            font=ctk.CTkFont(size=14)
+        )
+        self.siteEntry.grid(row=2, column=0, sticky="ew",
+                            padx=20, pady=(0, 15))
+
+        # Username field
+        usernameLabel = ctk.CTkLabel(
+            mainFrame, text="Username/Email:", font=ctk.CTkFont(size=14, weight="bold"))
+        usernameLabel.grid(row=3, column=0, sticky="w", padx=20, pady=(0, 5))
+
+        self.usernameEntry = ctk.CTkEntry(
+            mainFrame,
+            placeholder_text="your.email@example.com",
+            height=35,
+            font=ctk.CTkFont(size=14)
+        )
+        self.usernameEntry.grid(
+            row=4, column=0, sticky="ew", padx=20, pady=(0, 15))
+
+        # Password field
+        passwordLabel = ctk.CTkLabel(
+            mainFrame, text="Password:", font=ctk.CTkFont(size=14, weight="bold"))
+        passwordLabel.grid(row=5, column=0, sticky="w", padx=20, pady=(0, 5))
+
+        self.passwordEntry = ctk.CTkEntry(
+            mainFrame,
+            placeholder_text="Enter password",
+            show="*",
+            height=35,
+            font=ctk.CTkFont(size=14)
+        )
+        self.passwordEntry.grid(
+            row=6, column=0, sticky="ew", padx=20, pady=(0, 15))
+
+        # Notes field (optional)
+        notesLabel = ctk.CTkLabel(
+            mainFrame, text="Notes (Optional):", font=ctk.CTkFont(size=14, weight="bold"))
+        notesLabel.grid(row=7, column=0, sticky="w", padx=20, pady=(0, 5))
+
+        self.notesTextbox = ctk.CTkTextbox(
+            mainFrame,
+            height=80,
+            font=ctk.CTkFont(size=12)
+        )
+        self.notesTextbox.grid(
+            row=8, column=0, sticky="ew", padx=20, pady=(0, 20))
+
+        # Buttons
+        buttonFrame = ctk.CTkFrame(mainFrame, fg_color="transparent")
+        buttonFrame.grid(row=9, column=0, pady=20)
+
+        saveBtn = ctk.CTkButton(
+            buttonFrame,
+            text="💾 Save Password",
+            command=self.savePass,
+            width=140,
+            height=40,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        saveBtn.pack(side="left", padx=10)
+
+        cancelBtn = ctk.CTkButton(
+            buttonFrame,
+            text="❌ Cancel",
+            command=self.dialog.destroy,
+            width=140,
+            height=40,
+            font=ctk.CTkFont(size=14),
+            fg_color="gray",
+            hover_color="gray30"
+        )
+        cancelBtn.pack(side="left", padx=10)
+
+        # Focus on first field
+        self.siteEntry.focus()
+
+    def savePass(self):
         pass
 
 
