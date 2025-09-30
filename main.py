@@ -25,7 +25,7 @@ class BasicPasswordManager:
         # Using hardcoded pass initially
         self.correctPass = "password123"
         self.is_authenticated = False
-        self.ecryptionKey = None
+        self.encryptionKey = None
 
         # Configure main window grid
         self.root.grid_columnconfigure(0, weight=1)
@@ -68,6 +68,18 @@ class BasicPasswordManager:
             os.makedirs(os.path.dirname(self.saltFile), exist_ok=True)
             with open(self.saltFile, 'wb') as f:
                 f.write(self.salt)
+
+    def deriveKey(self, password):
+        """Derive encryption key from master password using PBKDF2"""
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=self.salt,
+            iterations=100000,
+            backend=default_backend()
+        )
+        key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
+        return key
 
     def setupLoginPage(self):
         """Create the login page"""
@@ -140,6 +152,15 @@ class BasicPasswordManager:
             return
 
         if enteredPass == self.correctPass:
+            # Generate encryption key from the entered password
+            self.encryptionKey = self.deriveKey(enteredPass)
+
+            if self.encryptionKey is None:
+                messagebox.showerror(
+                    "Error", "Failed to initialize encryption!")
+                return
+
+            self.loadPass()
             self.is_authenticated = True
             self.passEntry.delete(0, 'end')
             self.showMainPage()
@@ -256,11 +277,13 @@ class BasicPasswordManager:
         self.displayPass()
 
     def logout(self):
-        """Handle logout"""
+        """Handle logout and clears encryption key"""
         result = messagebox.askyesno(
             "Confirm", "Are you sure you want to lock the Vault, Milord?")
         if result:
             self.is_authenticated = False
+            self.encryptionKey = None
+            self.passData = {}
             self.showLoginPage()
             messagebox.showinfo("Locked", "Vault has been locked, Milord!")
 
@@ -307,7 +330,7 @@ class BasicPasswordManager:
         dialog = AddPasswordDialog(self.root, self.addPassEntry)
 
     def addPassEntry(self, site, username, password, notes=""):
-        """Add a new password entry"""
+        """Add a new password entry and save to encrypted file"""
         entryID = f"pwd_{len(self.passData)+1}"
 
         # Create password entry
@@ -334,21 +357,42 @@ class BasicPasswordManager:
         self.displayPass()
 
     def loadPass(self):
-        """Load passwords from JSON file"""
-        if os.path.exists(self.dataFile):
-            with open(self.dataFile, 'r') as j:
-                self.passData = json.load(j)
-        else:
+        """Load passwords from .dat file"""
+        if not os.path.exists(self.dataFile):
+            # print(f"{self.dataFile} not found. Initiating empty Dict...")
             self.passData = {}
+            return
+
+        with open(self.dataFile, 'rb') as f:
+            encryptedData = f.read()
+
+        if not encryptedData:
+            # print(f"No encrypted data")
+            self.passData = {}
+            return
+
+        # Decrypt data
+        fernet = Fernet(self.encryptionKey)
+        decryptedData = fernet.decrypt(encryptedData)
+
+        # Convert back to dictionary
+        self.passData = json.loads(decryptedData.decode())
 
     def savePass(self):
         """Save passwords to JSON file"""
         # Create JSON file if it isn't created
         os.makedirs(os.path.dirname(self.dataFile), exist_ok=True)
 
+        # Convert dictionary to JSON string
+        jsonData = json.dumps(self.passData, indent=2)
+
+        # Encrypt the JSON data
+        fernet = Fernet(self.encryptionKey)
+        encryptedData = fernet.encrypt(jsonData.encode())
+
         # Overwrite JSON with current data
-        with open(self.dataFile, 'w') as f:
-            json.dump(self.passData, f, indent=2)
+        with open(self.dataFile, 'wb') as f:
+            f.write(encryptedData)
 
     def displayPass(self):
         """Display stored passwords in the main content area"""
