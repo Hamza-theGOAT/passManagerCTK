@@ -3,6 +3,12 @@ from tkinter import messagebox
 import os
 import json
 from datetime import datetime as dt
+import base64
+import hashlib
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.backends import default_backend
+from cryptography.fernet import Fernet
 
 # Set appearance mode and color theme
 ctk.set_appearance_mode("dark")
@@ -19,6 +25,7 @@ class BasicPasswordManager:
         # Using hardcoded pass initially
         self.correctPass = "password123"
         self.is_authenticated = False
+        self.ecryptionKey = None
 
         # Configure main window grid
         self.root.grid_columnconfigure(0, weight=1)
@@ -33,8 +40,11 @@ class BasicPasswordManager:
 
         # Password entries and data file
         self.passData = {}
-        self.dataFile = 'files//passwords.json'
-        self.loadPass()
+        self.dataFile = 'files//passwords.dat'
+        self.saltFile = 'files//salt.dat'
+
+        # Search functionalities
+        self.loadOrCreateSalt()
 
         # Search functionalities
         self.filterData = {}
@@ -46,6 +56,18 @@ class BasicPasswordManager:
 
         # Show login page initially
         self.showLoginPage()
+
+    def loadOrCreateSalt(self):
+        """Load existing salt or create new one for key derivation"""
+        if os.path.exists(self.saltFile):
+            with open(self.saltFile, 'rb') as f:
+                self.salt = f.read()
+        else:
+            # Create new salt
+            self.salt = os.urandom(16)
+            os.makedirs(os.path.dirname(self.saltFile), exist_ok=True)
+            with open(self.saltFile, 'wb') as f:
+                f.write(self.salt)
 
     def setupLoginPage(self):
         """Create the login page"""
@@ -152,7 +174,7 @@ class BasicPasswordManager:
                 text=buttonText,
                 height=40,
                 font=ctk.CTkFont(size=14),
-                command=lambda text=buttonText: self.sideBarBtns(text)
+                command=lambda text=buttonText: self.bottomBarBtns(text)
             )
             button.grid(row=0, column=i+1, padx=10, pady=10)
 
@@ -262,7 +284,7 @@ class BasicPasswordManager:
         # Show main page
         self.mainFrame.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
 
-    def sideBarBtns(self, buttonText):
+    def bottomBarBtns(self, buttonText):
         """Handle sidebar button clicks"""
         if buttonText == "📝 Add Password":
             self.showAddPassDialog()
