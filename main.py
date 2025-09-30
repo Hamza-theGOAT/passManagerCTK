@@ -36,6 +36,10 @@ class BasicPasswordManager:
         self.dataFile = 'files//passwords.json'
         self.loadPass()
 
+        # Search functionalities
+        self.filterData = {}
+        self.isSearchActive = False
+
         # Create the two pages
         self.setupLoginPage()
         self.setupMainPage()
@@ -170,13 +174,54 @@ class BasicPasswordManager:
         contentArea.grid_columnconfigure(0, weight=1)
         contentArea.grid_rowconfigure(1, weight=1)
 
+        # Header frame with title and search bar
+        headerFrame = ctk.CTkFrame(contentArea, fg_color="transparent")
+        headerFrame.grid(row=0, column=0, sticky="ew", padx=30, pady=(30, 20))
+        headerFrame.grid_columnconfigure(1, weight=1)
+
         # Content header
         contentHeader = ctk.CTkLabel(
-            contentArea,
+            headerFrame,
             text="🎉 Welcome to SecureVault!",
             font=ctk.CTkFont(size=24, weight="bold")
         )
-        contentHeader.grid(row=0, column=0, padx=30, pady=(30, 20))
+        contentHeader.grid(row=0, column=0, sticky="w")
+
+        # Search frame
+        searchFrame = ctk.CTkFrame(headerFrame, fg_color="transparent")
+        searchFrame.grid(row=0, column=0, sticky="e")
+
+        # Search dropdown
+        self.searchDropdown = ctk.CTkComboBox(
+            searchFrame,
+            values=["site", "username"],
+            width=100,
+            height=30
+        )
+        self.searchDropdown.grid(row=0, column=0, padx=(0, 5))
+        self.searchDropdown.set("site")
+
+        # Search entry
+        self.searchEntry = ctk.CTkEntry(
+            searchFrame,
+            placeholder_text="Search ...",
+            width=150,
+            height=30
+        )
+        self.searchEntry.grid(row=0, column=1, padx=(0, 5))
+
+        # Search button
+        searchBtn = ctk.CTkButton(
+            searchFrame,
+            text="🔍",
+            width=40,
+            height=30,
+            command=self.performSearch
+        )
+        searchBtn.grid(row=0, column=2)
+
+        # Key bindings for search bar
+        self.searchEntry.bind('<Return>', lambda event: self.performSearch())
 
         # Content body
         self.contentBody = ctk.CTkFrame(contentArea)
