@@ -478,6 +478,19 @@ class BasicPasswordManager:
         )
         viewBtn.pack(side="left", padx=2)
 
+        # Delete button (to delete password)
+        delBtn = ctk.CTkButton(
+            buttonFrame,
+            text="🗑️ Delete",
+            width=80,
+            height=30,
+            command=lambda: self.delPass(entryID, data['site']),
+            font=ctk.CTkFont(size=12),
+            fg_color="red",
+            hover_color="darkred"
+        )
+        delBtn.pack(side="left", padx=2)
+
     def viewPass(self, data):
         """Show password details"""
         details = f"Site: {data['site']}\n"
@@ -488,6 +501,29 @@ class BasicPasswordManager:
         details += f"Created: {data['created'][:19]}"
 
         messagebox.showinfo("Password Details", details)
+
+    def delPass(self, entryID, siteName):
+        """Delete a password entry"""
+        # Show confirmation dialog
+        result = messagebox.askyesno(
+            "Confirm Delete",
+            f"Are you sure you want to delete the password for {siteName}?\n\nThis action cannot be undone!"
+        )
+
+        if result:
+            # Remove from dictionary
+            if entryID in self.passData:
+                del self.passData[entryID]
+
+                # Save updated data to encrypted file
+                self.savePass()
+
+                # Update the display
+                self.displayPass()
+
+                # Show success message
+                messagebox.showinfo(
+                    "Success", f"Password for {siteName} deleted successfully!")
 
     def performSearch(self):
         """Filter password data based on search criteria"""
