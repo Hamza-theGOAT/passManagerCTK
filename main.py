@@ -311,6 +311,8 @@ class BasicPasswordManager:
         """Handle sidebar button clicks"""
         if buttonText == "📝 Add Password":
             self.showAddPassDialog()
+        elif buttonText == "📤 Export Data":
+            self.exportPass()
         else:
             # Clear current content
             for widget in self.contentBody.winfo_children():
@@ -328,6 +330,19 @@ class BasicPasswordManager:
     def showAddPassDialog(self):
         """Show add password dialog"""
         dialog = AddPasswordDialog(self.root, self.addPassEntry)
+
+    def exportPass(self):
+        """Export Passkeys in JSON file"""
+        # Ask user confirmation
+        result = messagebox.askyesno(
+            "📤 Export Data", "Export all Passkeys to 'files/passwords.json'?")
+
+        # Save to JSON file
+        if result:
+            with open('files/passwords.json', 'w') as j:
+                json.dump(self.passData, j, indent=2)
+            messagebox.showinfo(
+                "Success", "All Pass Keys saved to 'files/passwords.json'")
 
     def addPassEntry(self, site, username, password, notes=""):
         """Add a new password entry and save to encrypted file"""
