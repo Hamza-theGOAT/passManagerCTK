@@ -23,7 +23,7 @@ class BasicPasswordManager:
         self.root.geometry("800x700")
 
         # Using hardcoded pass initially
-        self.correctPass = "password123"
+        self.masterPass = "password123"
         self.is_authenticated = False
         self.encryptionKey = None
 
@@ -42,6 +42,7 @@ class BasicPasswordManager:
         self.passData = {}
         self.dataFile = 'files//passwords.dat'
         self.saltFile = 'files//salt.dat'
+        self.masterFile = 'files//master.dat'
 
         # Search functionalities
         self.loadOrCreateSalt()
@@ -151,7 +152,12 @@ class BasicPasswordManager:
             messagebox.showwarning("Warning", "Please enter a password!")
             return
 
-        if enteredPass == self.correctPass:
+        # Load stored master password or use default
+        storedMasterPass = self.loadMasterPass()
+        if storedMasterPass is None:
+            storedMasterPass = self.masterPass
+
+        if enteredPass == storedMasterPass:
             # Generate encryption key from the entered password
             self.encryptionKey = self.deriveKey(enteredPass)
 
@@ -162,6 +168,7 @@ class BasicPasswordManager:
 
             self.loadPass()
             self.is_authenticated = True
+            self.currentMasterPass = enteredPass
             self.passEntry.delete(0, 'end')
             self.showMainPage()
             messagebox.showinfo("Success", "Welcome! Vault unlocked, Milord")
@@ -169,6 +176,23 @@ class BasicPasswordManager:
             messagebox.showerror("Error", "Incorrect password! Try again.")
             self.passEntry.delete(0, 'end')
             self.passEntry.focus()
+
+    def loadMasterPass(self):
+        """Load master password from encrypted file"""
+        if not os.path.exists(self.masterFile):
+            return None
+
+        with open(self.masterFile, 'rb') as f:
+            encryptedMasterPass = f.read()
+
+        if not encryptedMasterPass:
+            return None
+
+        # Use a simpel key derived from the salt for master pass storage
+        simpleKey = base64.urlsafe_b64encode(self.salt[:32])
+        fernet = Fernet(simpleKey)
+        decryptedMasterPass = fernet.decrypt(encryptedMasterPass)
+        return decryptedMasterPass.decode()
 
     def setupMainPage(self):
         """Create the main page"""
@@ -186,6 +210,7 @@ class BasicPasswordManager:
         # Menu buttons
         menuButtons = [
             "📝 Add Password",
+            "🔑 Change Masterpass",
             "📤 Export Data"
         ]
 
@@ -311,6 +336,8 @@ class BasicPasswordManager:
         """Handle sidebar button clicks"""
         if buttonText == "📝 Add Password":
             self.showAddPassDialog()
+        elif buttonText == "🔑 Change Masterpass":
+            self.changeMasterPass()
         elif buttonText == "📤 Export Data":
             self.exportPass()
         else:
