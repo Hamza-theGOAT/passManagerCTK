@@ -194,6 +194,20 @@ class BasicPasswordManager:
         decryptedMasterPass = fernet.decrypt(encryptedMasterPass)
         return decryptedMasterPass.decode()
 
+    def saveMasterPass(self, newMasterPass):
+        """Save master password to encrypted file"""
+        os.makedirs(os.path.dirname(self.masterFile), exist_ok=True)
+
+        # Simple key derived from the salt for master pass
+        simpleKey = base64.urlsafe_b64encode(self.salt[:32])
+        fernet = Fernet(simpleKey)
+        encryptedMasterPass = fernet.encrypt(newMasterPass.encode())
+
+        with open(self.masterFile, 'wb') as f:
+            f.write(encryptedMasterPass)
+
+        return True
+
     def setupMainPage(self):
         """Create the main page"""
         self.mainFrame = ctk.CTkFrame(self.mainContainer)
@@ -357,6 +371,9 @@ class BasicPasswordManager:
     def showAddPassDialog(self):
         """Show add password dialog"""
         dialog = AddPasswordDialog(self.root, self.addPassEntry)
+
+    def changeMasterPass(self):
+        pass
 
     def exportPass(self):
         """Export Passkeys in JSON file"""
