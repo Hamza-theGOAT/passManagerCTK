@@ -373,7 +373,44 @@ class BasicPasswordManager:
         dialog = AddPasswordDialog(self.root, self.addPassEntry)
 
     def changeMasterPass(self):
-        pass
+        """Change master password"""
+        dialog = ChangeMasterPasswordDialog(
+            self.root, self.handleMasterPassChange)
+
+    def handleMasterPassChange(self, currentPass, newPass):
+        """Handle master password change"""
+        # Verify current password
+        storedMasterPass = self.loadMasterPass()
+        if storedMasterPass is None:
+            storedMasterPass = self.masterPass
+
+        if currentPass != storedMasterPass:
+            messagebox.showerror("Error", "Current password is incorrect!")
+            return False
+
+        # Derive new encryption key
+        newEncryptionKey = self.deriveKey(newPass)
+
+        # Save data with new encryption key
+        jsonData = json.dumps(self.passData, indent=2)
+        fernet = Fernet(newEncryptionKey)
+        encryptedData = fernet.encrypt(jsonData.encode())
+
+        # Save to file
+        with open(self.dataFile, 'wb') as f:
+            f.write(encryptedData)
+
+        # Save new master password
+        if self.saveMasterPass(newPass):
+            # Update current session
+            self.encryptionKey = newEncryptionKey
+            self.currentMasterPass = newPass
+
+            messagebox.showinfo(
+                "Success", "Master password changed successfully!\nAll data has been re-encrypted with the new password.")
+            return True
+        else:
+            return False
 
     def exportPass(self):
         """Export Passkeys in JSON file"""
@@ -742,6 +779,11 @@ class AddPasswordDialog:
 
         # Close dialog
         self.dialog.destroy()
+
+
+class ChangeMasterPasswordDialog:
+    def __init__(self):
+        pass
 
 
 def main():
