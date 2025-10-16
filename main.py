@@ -782,7 +782,125 @@ class AddPasswordDialog:
 
 
 class ChangeMasterPasswordDialog:
-    def __init__(self):
+    def __init__(self, parent, callback):
+        self.callback = callback
+
+        # Create dialog window
+        self.dialog = ctk.CTkToplevel(parent)
+        self.dialog.title("Change Master Password")
+        self.dialog.geometry("450x400")
+        self.dialog.grab_set()
+
+        # Center the dialog
+        self.dialog.geometry(
+            "+%d+%d" % (parent.winfo_rootx()+175, parent.winfo_rooty()+150))
+
+        # Main frame
+        mainFrame = ctk.CTkFrame(self.dialog)
+        mainFrame.pack(fill="both", expand=True, padx=10, pady=10)
+        mainFrame.grid_columnconfigure(0, weight=1)
+
+        # Title
+        titleLabel = ctk.CTkLabel(
+            mainFrame,
+            text="🔑 Change Master Password",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
+        titleLabel.grid(row=0, column=0, pady=(20, 30))
+
+        # Warning message
+        warningLabel = ctk.CTkLabel(
+            mainFrame,
+            text="⚠️ Warning: Changing your master password will re-encrypt all data.\nMake sure you remember the new password!",
+            font=ctk.CTkFont(size=12),
+            text_color=("orange", "yellow"),
+            justify="center"
+        )
+        warningLabel.grid(row=1, column=0, pady=(0, 20))
+
+        # Current password field
+        currentLabel = ctk.CTkLabel(
+            mainFrame,
+            text="Current Master Password:",
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        currentLabel.grid(row=2, column=0, sticky="w", padx=20, pady=(0, 5))
+
+        self.currentEntry = ctk.CTkEntry(
+            mainFrame,
+            placeholder_text="Enter current password",
+            show="*",
+            height=35,
+            font=ctk.CTkFont(size=14)
+        )
+        self.currentEntry.grid(
+            row=3, column=0, sticky="ew", padx=20, pady=(0, 15))
+
+        # New password field
+        newLabel = ctk.CTkLabel(
+            mainFrame,
+            text="New Master password:",
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        newLabel.grid(row=4, column=0, sticky="w", padx=20, pady=(0, 5))
+
+        self.newEntry = ctk.CTkEntry(
+            mainFrame,
+            placeholder_text="Enter new password",
+            show="*",
+            height=35,
+            font=ctk.CTkFont(size=14)
+        )
+        self.newEntry.grid(row=5, column=0, sticky="ew", padx=20, pady=(0, 15))
+
+        # Confirm new password field
+        confirmLabel = ctk.CTkLabel(
+            mainFrame,
+            text="Confirm New Password:",
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        confirmLabel.grid(row=6, column=0, sticky="w", padx=20, pady=(0, 5))
+
+        self.confirmEntry = ctk.CTkEntry(
+            mainFrame,
+            placeholder_text="Confirm new password",
+            show="*",
+            height=35,
+            font=ctk.CTkFont(size=14)
+        )
+        self.confirmEntry.grid(
+            row=7, column=0, sticky="ew", padx=20, pady=(0, 20))
+
+        # Buttons
+        buttonFrame = ctk.CTkFrame(mainFrame, fg_color="transparent")
+        buttonFrame.grid(row=8, column=0, pady=20)
+
+        changeBtn = ctk.CTkButton(
+            buttonFrame,
+            text="🔑 Change Password",
+            command=self.changePassword,
+            width=150,
+            height=40,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        changeBtn.pack(side="left", padx=10)
+
+        cancelBtn = ctk.CTkButton(
+            buttonFrame,
+            text="❌ Cancel",
+            command=self.dialog.destroy,
+            width=150,
+            height=40,
+            font=ctk.CTkFont(size=14),
+            fg_color="gray",
+            hover_color="gray30"
+        )
+        cancelBtn.pack(side="left", padx=10)
+
+        # Focus on first field
+        self.currentEntry.focus()
+
+    def changePass(self):
         pass
 
 
