@@ -156,6 +156,7 @@ class BasicPasswordManager:
         storedMasterPass = self.loadMasterPass()
         if storedMasterPass is None:
             storedMasterPass = self.masterPass
+            self.saveMasterPass(self.masterPass)
 
         if enteredPass == storedMasterPass:
             # Generate encryption key from the entered password
@@ -189,7 +190,8 @@ class BasicPasswordManager:
             return None
 
         # Use a simpel key derived from the salt for master pass storage
-        simpleKey = base64.urlsafe_b64encode(self.salt[:32])
+        saltPadded = self.salt + b'\x00' * (32 - len(self.salt))
+        simpleKey = base64.urlsafe_b64encode(saltPadded)
         fernet = Fernet(simpleKey)
         decryptedMasterPass = fernet.decrypt(encryptedMasterPass)
         return decryptedMasterPass.decode()
@@ -198,8 +200,9 @@ class BasicPasswordManager:
         """Save master password to encrypted file"""
         os.makedirs(os.path.dirname(self.masterFile), exist_ok=True)
 
-        # Simple key derived from the salt for master pass
-        simpleKey = base64.urlsafe_b64encode(self.salt[:32])
+        # FIX: Use proper salt padding to ensure 32 bytes
+        saltPadded = self.salt + b'\x00' * (32 - len(self.salt))
+        simpleKey = base64.urlsafe_b64encode(saltPadded)
         fernet = Fernet(simpleKey)
         encryptedMasterPass = fernet.encrypt(newMasterPass.encode())
 
@@ -218,8 +221,9 @@ class BasicPasswordManager:
         bottombar = ctk.CTkFrame(self.mainFrame, height=60)
         bottombar.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
         bottombar.grid_propagate(False)
-        bottombar.grid_columnconfigure(0, weight=1)
-        bottombar.grid_columnconfigure(3, weight=1)
+
+        for i in range(6):
+            bottombar.grid_columnconfigure(i, weight=1)
 
         # Menu buttons
         menuButtons = [
@@ -236,7 +240,7 @@ class BasicPasswordManager:
                 font=ctk.CTkFont(size=14),
                 command=lambda text=buttonText: self.bottomBarBtns(text)
             )
-            button.grid(row=0, column=i+1, padx=10, pady=10)
+            button.grid(row=0, column=i+1, padx=15, pady=10, sticky="ew")
 
         # Lock button at bottom
         lockButton = ctk.CTkButton(
@@ -248,7 +252,7 @@ class BasicPasswordManager:
             fg_color="red",
             hover_color="darkred"
         )
-        lockButton.grid(row=0, column=3, padx=10, pady=10)
+        lockButton.grid(row=0, column=5, padx=15, pady=10, sticky="ew")
 
         # Main content area
         contentArea = ctk.CTkFrame(self.mainFrame)
@@ -467,6 +471,7 @@ class BasicPasswordManager:
             self.passData = {}
             return
 
+        # print(f"Encrypted Data: {encryptedData}")
         # Decrypt data
         fernet = Fernet(self.encryptionKey)
         decryptedData = fernet.decrypt(encryptedData)
@@ -878,7 +883,7 @@ class ChangeMasterPasswordDialog:
         changeBtn = ctk.CTkButton(
             buttonFrame,
             text="🔑 Change Password",
-            command=self.changePassword,
+            command=self.changePass,
             width=150,
             height=40,
             font=ctk.CTkFont(size=14, weight="bold")
@@ -901,7 +906,40 @@ class ChangeMasterPasswordDialog:
         self.currentEntry.focus()
 
     def changePass(self):
-        pass
+        """Validate and change password"""
+        currentPass = self.currentEntry.get().strip()
+        newPass = self.newEntry.get().strip()
+        confirmPass = self.confirmEntry.get().strip()
+
+        # Validation
+        if not currentPass:
+            messagebox.showwarning(
+                "Validation Error", "Please enter your current password!")
+            return
+
+        if not newPass:
+            messagebox.showwarning(
+                "Validation Error", "Please enter a new password!")
+            return
+
+        if len(newPass) < 6:
+            messagebox.showwarning(
+                "Validation Error", "New password must be at least 6 characters long!")
+            return
+
+        if newPass != confirmPass:
+            messagebox.showerror("Validation Error",
+                                 "New passwords don't match!")
+            return
+
+        if currentPass == newPass:
+            messagebox.showwarning(
+                "Validation Error", "New password must be different from current password!")
+            return
+
+        # Attempt to change password
+        if self.callback(currentPass, newPass):
+            self.dialog.destroy()
 
 
 def main():
