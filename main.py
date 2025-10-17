@@ -579,6 +579,19 @@ class BasicPasswordManager:
         )
         viewBtn.pack(side="left", padx=2)
 
+        # UPDATE BUTTON - NEW
+        updateBtn = ctk.CTkButton(
+            buttonFrame,
+            text="✏️ Update",
+            width=70,
+            height=30,
+            command=lambda: self.updatePass(entryID, data),
+            font=ctk.CTkFont(size=12),
+            fg_color="orange",
+            hover_color="darkorange"
+        )
+        updateBtn.pack(side="left", padx=2)
+
         # Delete button (to delete password)
         delBtn = ctk.CTkButton(
             buttonFrame,
@@ -602,6 +615,33 @@ class BasicPasswordManager:
         details += f"Created: {data['created'][:19]}"
 
         messagebox.showinfo("Password Details", details)
+
+    def updatePass(self, entryID, currentData):
+        """Update an existing password entry"""
+        dialog = AddPasswordDialog(self.root, lambda site, username, password, notes: self.handlePassUpdate(
+            entryID, site, username, password, notes), currentData)
+
+    def handlePassUpdate(self, entryID, site, username, password, notes):
+        """Handle the password update"""
+        if entryID in self.passData:
+            # Update the entry with new data
+            self.passData[entryID].update({
+                'site': site,
+                'username': username,
+                'password': password,
+                'notes': notes,
+                'modified': dt.now().isoformat()
+            })
+
+            # Save to encrypted file
+            self.savePass()
+
+            # Update the display
+            self.displayPass()
+
+            # Show success message
+            messagebox.showinfo(
+                "Success", f"Password for {site} updated successfully!")
 
     def delPass(self, entryID, siteName):
         """Delete a password entry"""
@@ -655,12 +695,12 @@ class BasicPasswordManager:
 
 
 class AddPasswordDialog:
-    def __init__(self, parent, callBack):
+    def __init__(self, parent, callBack, existingData=None):
         self.callBack = callBack
+        self.existingData = existingData
 
         # Create dialog window
         self.dialog = ctk.CTkToplevel(parent)
-        self.dialog.title("Add New Password")
         self.dialog.geometry("450x550")
         self.dialog.grab_set()
 
@@ -793,7 +833,7 @@ class ChangeMasterPasswordDialog:
         # Create dialog window
         self.dialog = ctk.CTkToplevel(parent)
         self.dialog.title("Change Master Password")
-        self.dialog.geometry("450x400")
+        self.dialog.geometry("450x480")
         self.dialog.grab_set()
 
         # Center the dialog
