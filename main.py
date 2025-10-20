@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 from cryptography.fernet import Fernet
+import ctypes
 
 # Set appearance mode and color theme
 ctk.set_appearance_mode("dark")
@@ -172,7 +173,8 @@ class BasicPasswordManager:
             self.currentMasterPass = enteredPass
             self.passEntry.delete(0, 'end')
             self.showMainPage()
-            messagebox.showinfo("Success", "Welcome! Vault unlocked, Milord")
+            CustomDialog.showinfo(
+                "Success", "Welcome! Vault unlocked, Milord", parent=self.root)
         else:
             messagebox.showerror("Error", "Incorrect password! Try again.")
             self.passEntry.delete(0, 'end')
@@ -1000,6 +1002,51 @@ class ChangeMasterPasswordDialog:
         # Attempt to change password
         if self.callback(currentPass, newPass):
             self.dialog.destroy()
+
+
+class CustomDialog:
+    """Custom CTkinter dialog"""
+
+    @staticmethod
+    def _apply_theme(dialog):
+        """Apply dark theme to dialog title bar (Windows only)"""
+        try:
+            # Try to apply dark theme to title bar on Windows
+            HWND = ctypes.windll.user32.GetParent(dialog.winfo_id())
+            DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+            ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                HWND,
+                DWMWA_USE_IMMERSIVE_DARK_MODE,
+                ctypes.byref(ctypes.c_int(1)),
+                ctypes.sizeof(ctypes.c_int)
+            )
+        except:
+            pass  # Silently fail on non-Windows or if API unavailable
+
+    @staticmethod
+    def _calculate_height(message, baseHeight=140, lineHeight=25):
+        """Calculate dialog height based on message length"""
+        # Estimate lines (assuming ~50 chars per line with wrapping)
+        estimatedLines = max(1, len(message) // 50 + message.count('\n'))
+        # Add height for each line beyond the first
+        additionalHeight = max(0, (estimatedLines - 1) * lineHeight)
+        return min(baseHeight + additionalHeight, 400)  # Cap at 400px
+
+    @staticmethod
+    def showinfo(title, message, parent=None):
+        pass
+
+    @staticmethod
+    def showwarning(title, message, parent=None):
+        pass
+
+    @staticmethod
+    def showerror(title, message, parent=None):
+        pass
+
+    @staticmethod
+    def askyesno(title, message, parent=None):
+        pass
 
 
 def main():
