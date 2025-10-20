@@ -701,6 +701,15 @@ class AddPasswordDialog:
 
         # Create dialog window
         self.dialog = ctk.CTkToplevel(parent)
+
+        # Set title based on whether we're adding or updating
+        if existingData:
+            self.dialog.title("Update Password")
+            dialogTitle = "✏️ Update Password"
+        else:
+            self.dialog.title("Add New Password")
+            dialogTitle = "📝 Add New Password"
+
         self.dialog.geometry("450x550")
         self.dialog.grab_set()
 
@@ -716,7 +725,7 @@ class AddPasswordDialog:
         # Title
         titleLabel = ctk.CTkLabel(
             mainFrame,
-            text="📝 Add New Password",
+            text=dialogTitle,
             font=ctk.CTkFont(size=20, weight="bold")
         )
         titleLabel.grid(row=0, column=0, pady=(20, 30))
@@ -754,14 +763,14 @@ class AddPasswordDialog:
             mainFrame, text="Password:", font=ctk.CTkFont(size=14, weight="bold"))
         passwordLabel.grid(row=5, column=0, sticky="w", padx=20, pady=(0, 5))
 
-        self.passwordEntry = ctk.CTkEntry(
+        self.passEntry = ctk.CTkEntry(
             mainFrame,
             placeholder_text="Enter password",
             show="*",
             height=35,
             font=ctk.CTkFont(size=14)
         )
-        self.passwordEntry.grid(
+        self.passEntry.grid(
             row=6, column=0, sticky="ew", padx=20, pady=(0, 15))
 
         # Notes field (optional)
@@ -777,13 +786,24 @@ class AddPasswordDialog:
         self.notesTextbox.grid(
             row=8, column=0, sticky="ew", padx=20, pady=(0, 20))
 
+        # Populate fields if updating existing entry
+        if existingData:
+            self.siteEntry.insert(0, existingData.get('site', ''))
+            self.usernameEntry.insert(0, existingData.get('username', ''))
+            self.passEntry.insert(0, existingData.get('password', ''))
+            if existingData.get('notes'):
+                self.notesTextbox.insert('1.0', existingData.get('notes', ''))
+
         # Buttons
         buttonFrame = ctk.CTkFrame(mainFrame, fg_color="transparent")
         buttonFrame.grid(row=9, column=0, pady=20)
 
+        # Dynamic button text
+        saveButtonText = "💾 Update Password" if existingData else "💾 Save Password"
+
         saveBtn = ctk.CTkButton(
             buttonFrame,
-            text="💾 Save Password",
+            text=saveButtonText,
             command=self.savePass,
             width=140,
             height=40,
@@ -810,7 +830,7 @@ class AddPasswordDialog:
         """Save the password entry"""
         site = self.siteEntry.get().strip()
         username = self.usernameEntry.get().strip()
-        password = self.passwordEntry.get().strip()
+        password = self.passEntry.get().strip()
         notes = self.notesTextbox.get('1.0', 'end').strip()
 
         # Validation
