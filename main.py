@@ -1034,7 +1034,64 @@ class CustomDialog:
 
     @staticmethod
     def showinfo(title, message, parent=None):
-        pass
+        """Show info dialog"""
+        dialog = ctk.CTkToplevel()
+        dialog.title(f"✓ {title}")
+
+        # Calculate dynamic height
+        height = CustomDialog._calculate_height(message)
+        dialog.geometry(f"420x{height}")
+
+        if parent:
+            dialog.transient(parent)
+            dialog.geometry("+%d+%d" % (parent.winfo_rootx() +
+                            200, parent.winfo_rooty() + 200))
+
+        dialog.grab_set()
+
+        # Apply dark theme to title bar
+        dialog.after(10, lambda: CustomDialog._apply_theme(dialog))
+
+        # Main frame
+        mainFrame = ctk.CTkFrame(dialog, corner_radius=0)
+        mainFrame.pack(fill="both", expand=True, padx=0, pady=0)
+        mainFrame.grid_rowconfigure(0, weight=2)  # Message area (2/3)
+        mainFrame.grid_rowconfigure(1, weight=1)  # Button area (1/3)
+        mainFrame.grid_columnconfigure(0, weight=1)
+
+        # Message area (centered, 2/3 of space)
+        messageFrame = ctk.CTkFrame(mainFrame, fg_color="transparent")
+        messageFrame.grid(row=0, column=0, sticky="nsew",
+                          padx=30, pady=(30, 10))
+        messageFrame.grid_rowconfigure(0, weight=1)
+        messageFrame.grid_columnconfigure(0, weight=1)
+
+        messageLabel = ctk.CTkLabel(
+            messageFrame,
+            text=message,
+            font=ctk.CTkFont(size=14),
+            wraplength=360,
+            justify="center"
+        )
+        messageLabel.grid(row=0, column=0, sticky="")  # Centered
+
+        # Button area (bottom, 1/3 of space)
+        buttonFrame = ctk.CTkFrame(mainFrame, fg_color="transparent")
+        buttonFrame.grid(row=1, column=0, sticky="se", padx=30, pady=20)
+
+        okBtn = ctk.CTkButton(
+            buttonFrame,
+            text="OK",
+            command=dialog.destroy,
+            width=120,
+            height=38,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        okBtn.pack()
+        okBtn.focus()
+
+        dialog.bind('<Return>', lambda e: dialog.destroy())
+        dialog.wait_window()
 
     @staticmethod
     def showwarning(title, message, parent=None):
