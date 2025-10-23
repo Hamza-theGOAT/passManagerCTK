@@ -1211,7 +1211,84 @@ class CustomDialog:
 
     @staticmethod
     def askyesno(title, message, parent=None):
-        pass
+        """Show yes/no dialog"""
+        result = {"value": False}
+
+        dialog = ctk.CTkToplevel()
+        dialog.title(f"? {title}")
+
+        # Calculate dynamic height
+        height = CustomDialog._calculate_height(message)
+        dialog.geometry(f"420x{height}")
+
+        if parent:
+            dialog.transient(parent)
+            dialog.geometry("+%d+%d" % (parent.winfo_rootx() +
+                            200, parent.winfo_rooty() + 200))
+
+        dialog.grab_set()
+        dialog.after(10, lambda: CustomDialog._apply_theme(dialog))
+
+        mainFrame = ctk.CTkFrame(dialog, corner_radius=0)
+        mainFrame.pack(fill="both", expand=True, padx=0, pady=0)
+        mainFrame.grid_rowconfigure(0, weight=2)
+        mainFrame.grid_rowconfigure(1, weight=1)
+        mainFrame.grid_columnconfigure(0, weight=1)
+
+        messageFrame = ctk.CTkFrame(mainFrame, fg_color="transparent")
+        messageFrame.grid(row=0, column=0, sticky="nsew",
+                          padx=30, pady=(30, 10))
+        messageFrame.grid_rowconfigure(0, weight=1)
+        messageFrame.grid_columnconfigure(0, weight=1)
+
+        messageLabel = ctk.CTkLabel(
+            messageFrame,
+            text=message,
+            font=ctk.CTkFont(size=14),
+            wraplength=360,
+            justify="center"
+        )
+        messageLabel.grid(row=0, column=0, sticky="")
+
+        def on_yes():
+            result["value"] = True
+            dialog.destroy()
+
+        def on_no():
+            result["value"] = False
+            dialog.destroy()
+
+        buttonContainer = ctk.CTkFrame(mainFrame, fg_color="transparent")
+        buttonContainer.grid(row=1, column=0, sticky="se", padx=30, pady=20)
+
+        noBtn = ctk.CTkButton(
+            buttonContainer,
+            text="No",
+            command=on_no,
+            width=100,
+            height=38,
+            font=ctk.CTkFont(size=14),
+            fg_color="gray40",
+            hover_color="gray30"
+        )
+        noBtn.pack(side="left", padx=(0, 10))
+
+        yesBtn = ctk.CTkButton(
+            buttonContainer,
+            text="Yes",
+            command=on_yes,
+            width=100,
+            height=38,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        yesBtn.pack(side="left")
+        yesBtn.focus()
+
+        dialog.bind('<Return>', lambda e: on_yes())
+        dialog.bind('<Escape>', lambda e: on_no())
+
+        dialog.wait_window()
+        return result["value"]
 
 
 def main():
