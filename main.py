@@ -1153,7 +1153,61 @@ class CustomDialog:
 
     @staticmethod
     def showerror(title, message, parent=None):
-        pass
+        """Show error dialog"""
+        dialog = ctk.CTkToplevel()
+        dialog.title(f"✕ {title}")
+
+        # Calculate dynamic height
+        height = CustomDialog._calculate_height(message)
+        dialog.geometry(f"420x{height}")
+
+        if parent:
+            dialog.transient(parent)
+            dialog.geometry("+%d+%d" % (parent.winfo_rootx() +
+                            200, parent.winfo_rooty() + 200))
+
+        dialog.grab_set()
+        dialog.after(10, lambda: CustomDialog._apply_theme(dialog))
+
+        mainFrame = ctk.CTkFrame(dialog, corner_radius=0)
+        mainFrame.pack(fill="both", expand=True, padx=0, pady=0)
+        mainFrame.grid_rowconfigure(0, weight=2)
+        mainFrame.grid_rowconfigure(1, weight=1)
+        mainFrame.grid_columnconfigure(0, weight=1)
+
+        messageFrame = ctk.CTkFrame(mainFrame, fg_color="transparent")
+        messageFrame.grid(row=0, column=0, sticky="nsew",
+                          padx=30, pady=(30, 10))
+        messageFrame.grid_rowconfigure(0, weight=1)
+        messageFrame.grid_columnconfigure(0, weight=1)
+
+        messageLabel = ctk.CTkLabel(
+            messageFrame,
+            text=message,
+            font=ctk.CTkFont(size=14),
+            wraplength=360,
+            justify="center"
+        )
+        messageLabel.grid(row=0, column=0, sticky="")
+
+        buttonFrame = ctk.CTkFrame(mainFrame, fg_color="transparent")
+        buttonFrame.grid(row=1, column=0, sticky="se", padx=30, pady=20)
+
+        okBtn = ctk.CTkButton(
+            buttonFrame,
+            text="OK",
+            command=dialog.destroy,
+            width=120,
+            height=38,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color="red",
+            hover_color="darkred"
+        )
+        okBtn.pack()
+        okBtn.focus()
+
+        dialog.bind('<Return>', lambda e: dialog.destroy())
+        dialog.wait_window()
 
     @staticmethod
     def askyesno(title, message, parent=None):
