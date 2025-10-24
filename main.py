@@ -612,14 +612,113 @@ class BasicPasswordManager:
 
     def viewPass(self, data):
         """Show password details"""
-        details = f"Site: {data['site']}\n"
-        details += f"Username: {data['username']}\n"
-        details += f"Password: {data['password']}\n"
-        if data.get('notes'):
-            details += f"Notes: {data['notes']}\n"
-        details += f"Created: {data['created'][:19]}"
+        dialog = ctk.CTkToplevel(self.root)
+        dialog.title("Password Details")
+        dialog.geometry("500x600")
+        dialog.grab_set()
 
-        CustomDialog.showinfo("Password Details", details, parent=self.root)
+        # Center the dialog
+        dialog.geometry("+%d+%d" % (self.root.winfo_rootx() +
+                        150, self.root.winfo_rooty()+125))
+
+        # Main frame
+        mainFrame = ctk.CTkFrame(dialog)
+        mainFrame.pack(fill="both", expand=True, padx=10, pady=10)
+        mainFrame.grid_columnconfigure(0, weight=1)
+
+        # Title
+        titleLabel = ctk.CTkLabel(
+            mainFrame,
+            text="🔐 Password Details",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
+        titleLabel.grid(row=0, column=0, pady=(20, 20))
+
+        # Content frame for password details
+        contentFrame = ctk.CTkFrame(mainFrame)
+        contentFrame.grid(row=1, column=0, sticky="ew", padx=20, pady=(0, 20))
+        contentFrame.grid_columnconfigure(0, weight=1)
+
+        # Helper function to create each field row
+        def createFieldRow(parent, rowNum, labelText, valueText, showCopy=True):
+            # Field label
+            label = ctk.CTkLabel(
+                parent,
+                text=labelText,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                anchor="w"
+            )
+            label.grid(row=rowNum*2, column=0,
+                       sticky="w", padx=15, pady=(15, 5))
+
+            # Value frame (contains value and copy button)
+            valueFrame = ctk.CTkFrame(parent, fg_color="transparent")
+            valueFrame.grid(row=rowNum*2+1, column=0,
+                            sticky="ew", padx=15, pady=(0, 5))
+            valueFrame.grid_columnconfigure(0, weight=1)
+
+            # Value label
+            valueLabel = ctk.CTkLabel(
+                valueFrame,
+                text=valueText,
+                font=ctk.CTkFont(size=13),
+                anchor="w",
+                justify="left"
+            )
+            valueLabel.grid(row=0, column=0, sticky="w", padx=(5, 10))
+
+            # Copy button
+            if showCopy:
+                copyBtn = ctk.CTkButton(
+                    valueFrame,
+                    text="📋 Copy",
+                    width=80,
+                    height=28,
+                    command=lambda v=valueText: self.copyToClipboard(v),
+                    font=ctk.CTkFont(size=12)
+                )
+                copyBtn.grid(row=0, column=1, padx=5)
+
+            # Separator line
+            separator = ctk.CTkFrame(parent, height=1, fg_color="gray30")
+            separator.grid(row=rowNum*2+2, column=0,
+                           sticky="ew", padx=15, pady=(5, 0))
+            rowNum += 1
+            return rowNum
+
+        # Create fields
+        row = 0
+        row = createFieldRow(contentFrame, row, "Site/Service:", data['site'])
+        row = createFieldRow(contentFrame, row,
+                             "Username/Email:", data['username'])
+        row = createFieldRow(contentFrame, row, "Password:", data['password'])
+
+        if data.get('notes'):
+            row = createFieldRow(contentFrame, row, "Notes:",
+                                 data['notes'], showCopy=False)
+
+        row = createFieldRow(contentFrame, row, "Created:",
+                             data['created'][:19], showCopy=False)
+
+        # Close button
+        closeBtn = ctk.CTkButton(
+            mainFrame,
+            text="Close",
+            command=dialog.destroy,
+            width=120,
+            height=38,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        closeBtn.grid(row=2, column=0, pady=(10, 20))
+
+        dialog.bind('<Escape>', lambda e: dialog.destroy())
+        dialog.bind('<Return>', lambda e: dialog.destroy())
+
+    def copyToClipboard(self, text):
+        """Copy text to clipboard and show confirmation"""
+        self.root.clipboard_clear()
+        self.root.clipboard_append(text)
+        self.root.update()
 
     def updatePass(self, entryID, currentData):
         """Update an existing password entry"""
