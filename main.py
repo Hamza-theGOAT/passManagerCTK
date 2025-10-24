@@ -1,5 +1,4 @@
 import customtkinter as ctk
-from tkinter import messagebox
 import os
 import json
 from datetime import datetime as dt
@@ -150,7 +149,8 @@ class BasicPasswordManager:
         enteredPass = self.passEntry.get()
 
         if not enteredPass:
-            messagebox.showwarning("Warning", "Please enter a password!")
+            CustomDialog.showwarning(
+                "Warning", "Please enter a password!", parent=self.root)
             return
 
         # Load stored master password or use default
@@ -164,8 +164,8 @@ class BasicPasswordManager:
             self.encryptionKey = self.deriveKey(enteredPass)
 
             if self.encryptionKey is None:
-                messagebox.showerror(
-                    "Error", "Failed to initialize encryption!")
+                CustomDialog.showerror(
+                    "Error", "Failed to initialize encryption!", parent=self.root)
                 return
 
             self.loadPass()
@@ -176,7 +176,8 @@ class BasicPasswordManager:
             CustomDialog.showinfo(
                 "Success", "Welcome! Vault unlocked, Milord", parent=self.root)
         else:
-            messagebox.showerror("Error", "Incorrect password! Try again.")
+            CustomDialog.showerror(
+                "Error", "Incorrect password! Try again.", parent=self.root)
             self.passEntry.delete(0, 'end')
             self.passEntry.focus()
 
@@ -323,14 +324,15 @@ class BasicPasswordManager:
 
     def logout(self):
         """Handle logout and clears encryption key"""
-        result = messagebox.askyesno(
-            "Confirm", "Are you sure you want to lock the Vault, Milord?")
+        result = CustomDialog.askyesno(
+            "Confirm", "Are you sure you want to lock the Vault, Milord?", parent=self.root)
         if result:
             self.is_authenticated = False
             self.encryptionKey = None
             self.passData = {}
             self.showLoginPage()
-            messagebox.showinfo("Locked", "Vault has been locked, Milord!")
+            CustomDialog.showinfo(
+                "Locked", "Vault has been locked, Milord!", parent=self.root)
 
     def showLoginPage(self):
         """Display the login page"""
@@ -391,7 +393,8 @@ class BasicPasswordManager:
             storedMasterPass = self.masterPass
 
         if currentPass != storedMasterPass:
-            messagebox.showerror("Error", "Current password is incorrect!")
+            CustomDialog.showerror(
+                "Error", "Current password is incorrect!", parent=self.root)
             return False
 
         # Derive new encryption key
@@ -412,8 +415,8 @@ class BasicPasswordManager:
             self.encryptionKey = newEncryptionKey
             self.currentMasterPass = newPass
 
-            messagebox.showinfo(
-                "Success", "Master password changed successfully!\nAll data has been re-encrypted with the new password.")
+            CustomDialog.showinfo(
+                "Success", "Master password changed successfully!\nAll data has been re-encrypted with the new password.", parent=self.root)
             return True
         else:
             return False
@@ -421,15 +424,15 @@ class BasicPasswordManager:
     def exportPass(self):
         """Export Passkeys in JSON file"""
         # Ask user confirmation
-        result = messagebox.askyesno(
-            "📤 Export Data", "Export all Passkeys to 'files/passwords.json'?")
+        result = CustomDialog.askyesno(
+            "📤 Export Data", "Export all Passkeys to 'files/passwords.json'?", parent=self.root)
 
         # Save to JSON file
         if result:
             with open('files/passwords.json', 'w') as j:
                 json.dump(self.passData, j, indent=2)
-            messagebox.showinfo(
-                "Success", "All Pass Keys saved to 'files/passwords.json'")
+            CustomDialog.showinfo(
+                "Success", "All Pass Keys saved to 'files/passwords.json'", parent=self.root)
 
     def addPassEntry(self, site, username, password, notes=""):
         """Add a new password entry and save to encrypted file"""
@@ -452,8 +455,8 @@ class BasicPasswordManager:
         self.savePass()
 
         # Show success message
-        messagebox.showinfo(
-            "Success", f"Password for {site} added successfully!")
+        CustomDialog.showinfo(
+            "Success", f"Password for {site} added successfully!", parent=self.root)
 
         # Update the main display
         self.displayPass()
@@ -616,7 +619,7 @@ class BasicPasswordManager:
             details += f"Notes: {data['notes']}\n"
         details += f"Created: {data['created'][:19]}"
 
-        messagebox.showinfo("Password Details", details)
+        CustomDialog.showinfo("Password Details", details, parent=self.root)
 
     def updatePass(self, entryID, currentData):
         """Update an existing password entry"""
@@ -642,15 +645,16 @@ class BasicPasswordManager:
             self.displayPass()
 
             # Show success message
-            messagebox.showinfo(
-                "Success", f"Password for {site} updated successfully!")
+            CustomDialog.showinfo(
+                "Success", f"Password for {site} updated successfully!", parent=self.root)
 
     def delPass(self, entryID, siteName):
         """Delete a password entry"""
         # Show confirmation dialog
-        result = messagebox.askyesno(
+        result = CustomDialog.askyesno(
             "Confirm Delete",
-            f"Are you sure you want to delete the password for {siteName}?\n\nThis action cannot be undone!"
+            f"Are you sure you want to delete the password for {siteName}?\n\nThis action cannot be undone!",
+            parent=self.root
         )
 
         if result:
@@ -665,8 +669,8 @@ class BasicPasswordManager:
                 self.displayPass()
 
                 # Show success message
-                messagebox.showinfo(
-                    "Success", f"Password for {siteName} deleted successfully!")
+                CustomDialog.showinfo(
+                    "Success", f"Password for {siteName} deleted successfully!", parent=self.root)
 
     def performSearch(self):
         """Filter password data based on search criteria"""
@@ -837,8 +841,8 @@ class AddPasswordDialog:
 
         # Validation
         if not site or not username or not password:
-            messagebox.showwarning(
-                "Validation Error", "Please fill in the required fields!")
+            CustomDialog.showwarning(
+                "Validation Error", "Please fill in the required fields!", parent=self.root)
             return
 
         # Call the callback function
@@ -975,28 +979,29 @@ class ChangeMasterPasswordDialog:
 
         # Validation
         if not currentPass:
-            messagebox.showwarning(
-                "Validation Error", "Please enter your current password!")
+            CustomDialog.showwarning(
+                "Validation Error", "Please enter your current password!", parent=self.root)
             return
 
         if not newPass:
-            messagebox.showwarning(
-                "Validation Error", "Please enter a new password!")
+            CustomDialog.showwarning(
+                "Validation Error", "Please enter a new password!", parent=self.root)
             return
 
         if len(newPass) < 6:
-            messagebox.showwarning(
-                "Validation Error", "New password must be at least 6 characters long!")
+            CustomDialog.showwarning(
+                "Validation Error", "New password must be at least 6 characters long!", parent=self.root)
             return
 
         if newPass != confirmPass:
-            messagebox.showerror("Validation Error",
-                                 "New passwords don't match!")
+            CustomDialog.showerror("Validation Error",
+                                   "New passwords don't match!",
+                                   parent=self.root)
             return
 
         if currentPass == newPass:
-            messagebox.showwarning(
-                "Validation Error", "New password must be different from current password!")
+            CustomDialog.showwarning(
+                "Validation Error", "New password must be different from current password!", parent=self.root)
             return
 
         # Attempt to change password
